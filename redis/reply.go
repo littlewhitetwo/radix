@@ -40,13 +40,12 @@ type Reply struct {
 }
 
 // Str returns the reply value as a string or
-// an error, if the reply type is not ReplyStatus, ReplyString or ReplyNil.
-// return "EMPTY STRING" for Str() if the reply type is ReplyNil.
+// an error, if the reply type is not ReplyStatus or ReplyString.
 func (r *Reply) Str() (string, error) {
 	if r.Type == ReplyError {
 		return "", r.Err
 	}
-	if !(r.Type == ReplyStatus || r.Type == ReplyString || r.Type == ReplyNil) {
+	if !(r.Type == ReplyStatus || r.Type == ReplyString) {
 		return "", errors.New("string value is not available for this reply type")
 	}
 
@@ -54,7 +53,6 @@ func (r *Reply) Str() (string, error) {
 }
 
 // Bytes is a convenience method for calling Reply.Str() and converting it to []byte.
-// return "EMPTY STRING" if the reply type is ReplyNil.
 func (r *Reply) Bytes() ([]byte, error) {
 	if r.Type == ReplyError {
 		return nil, r.Err
@@ -70,7 +68,6 @@ func (r *Reply) Bytes() ([]byte, error) {
 // Int64 returns the reply value as a int64 or an error,
 // if the reply type is not ReplyInteger or the reply type
 // ReplyString could not be parsed to an int64.
-// return 0 for Int64() if the reply type is ReplyNil.
 func (r *Reply) Int64() (int64, error) {
 	if r.Type == ReplyError {
 		return 0, r.Err
@@ -84,9 +81,6 @@ func (r *Reply) Int64() (int64, error) {
 				return i64, nil
 			}
 		}
-		if r.Type == ReplyNil {
-			return 0, nil
-		}
 
 		return 0, errors.New("integer value is not available for this reply type")
 	}
@@ -95,7 +89,6 @@ func (r *Reply) Int64() (int64, error) {
 }
 
 // Int is a convenience method for calling Reply.Int64() and converting it to int.
-// return 0 for Int() if the reply type is ReplyNil.
 func (r *Reply) Int() (int, error) {
 	if r.Type == ReplyError {
 		return 0, r.Err
@@ -110,7 +103,6 @@ func (r *Reply) Int() (int, error) {
 
 // Bool returns true, if the reply value equals to 1 or "1", otherwise false; or
 // an error, if the reply type is not ReplyInteger or ReplyString.
-// return false for Bool() if the reply type is ReplyNil.
 func (r *Reply) Bool() (bool, error) {
 	if r.Type == ReplyError {
 		return false, r.Err
@@ -139,17 +131,11 @@ func (r *Reply) Bool() (bool, error) {
 // List returns a multi-bulk reply as a slice of strings or an error.
 // The reply type must be ReplyMulti and its elements' types must all be either ReplyString or ReplyNil.
 // Nil elements are returned as empty strings.
-// return nil for List() if the top reply type is ReplyNil.
 // Useful for list commands.
 func (r *Reply) List() ([]string, error) {
 	if r.Type == ReplyError {
 		return nil, r.Err
 	}
-
-	if r.Type == ReplyNil {
-		return nil, nil
-	}
-
 	if r.Type != ReplyMulti {
 		return nil, errors.New("reply type is not ReplyMulti")
 	}
@@ -174,17 +160,11 @@ func (r *Reply) List() ([]string, error) {
 // they must be in a "key value key value..." order and
 // values must all be either ReplyString or ReplyNil.
 // Nil values are returned as empty strings.
-// return nil for Hash() if the top reply type is ReplyNil.
 // Useful for hash commands.
 func (r *Reply) Hash() (map[string]string, error) {
 	if r.Type == ReplyError {
 		return nil, r.Err
 	}
-
-	if r.Type == ReplyNil {
-		return nil, nil
-	}
-
 	rmap := map[string]string{}
 
 	if r.Type != ReplyMulti {
