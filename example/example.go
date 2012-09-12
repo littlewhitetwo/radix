@@ -25,7 +25,7 @@ func main() {
 	// conf.Network = "unix"
 	// conf.Address = "/tmp/redis.sock"
 
-	conf.Database = 8 // Database number 
+	conf.Database = 8                              // Database number 
 	conf.Timeout = time.Duration(10) * time.Second // Socket timeout
 	c = redis.NewClient(conf)
 
@@ -47,12 +47,18 @@ func main() {
 		return
 	}
 
-	s, err := c.Get("mykey0").Str()
-	if err != nil {
-		fmt.Println(err)
+	var err error
+	var s string
+	if rep = c.Get("mykey0_may_not_exist"); rep.Type == redis.ReplyNil {
+		//key not found
+		fmt.Println("key not found ")
+
+	} else if s, err = rep.Str(); err != nil {
+
+		fmt.Println("Get error ", err)
+
 		return
 	}
-
 	fmt.Println("mykey0:", s)
 
 	myhash := map[string]string{
@@ -80,7 +86,7 @@ func main() {
 	// c.Rpush("mylist", "foo", "bar", "qux")
 	c.Rpush("mylist", mylist)
 
-	mylist, err = c.Lrange("mylist", 0, -1).List()
+	mylist, err = c.Lrange("mylist_may_not_exist", 0, -1).List()
 	if err != nil {
 		fmt.Println(err)
 		return
