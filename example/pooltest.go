@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/fzzbt/radix/redis"
+	"github.com/littlewhitetwo/radix/redis"
 	"time"
 )
 
@@ -46,7 +46,7 @@ func main() {
 
 	conf.Database = 8
 	conf.PoolCapacity = 1
-	conf.Timeout = time.Duration(200) * time.Millisecond
+	conf.Timeout = time.Duration(210) * time.Millisecond
 
 	fmt.Printf("conf:%+v \n", conf)
 

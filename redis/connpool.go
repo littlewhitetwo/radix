@@ -30,9 +30,9 @@ func newConnPool(config *Config) *connPool {
 
 func (cp *connPool) push(c *conn) {
 
-	fmt.Printf("[push]trylock\n")
+	fmt.Printf("[push]trylock, lock:%+v\n", cp.lock)
 	cp.lock.Lock()
-	fmt.Printf("[push]lock ok a:%d \n", cp.available)
+	fmt.Printf("[push]lock ok a:%d lock:%+v \n", cp.available, cp.lock)
 
 	defer cp.lock.Unlock()
 	if cp.closed {
@@ -48,14 +48,14 @@ func (cp *connPool) push(c *conn) {
 
 	cp.emptyCond.Signal()
 
-	fmt.Printf("[push]signal ok a:%d \n", cp.available)
+	fmt.Printf("[push]signal ok a:%d cont:%+v\n", cp.available, cp.emptyCond)
 }
 
 func (cp *connPool) pull() (c *conn, err *Error) {
 
-	fmt.Printf("[pull]try lock\n")
+	fmt.Printf("[pull]try lock l:%+v\n", cp.lock)
 	cp.lock.Lock()
-	fmt.Printf("[pull]lock ok a:%d \n", cp.available)
+	fmt.Printf("[pull]lock ok a:%d l:%+v\n", cp.available, cp.lock)
 
 	defer cp.lock.Unlock()
 	if cp.closed {

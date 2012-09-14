@@ -26,13 +26,12 @@ func (c *Client) Close() {
 func (c *Client) call(cmd Cmd, args ...interface{}) *Reply {
 	// Connection handling
 	conn, err := c.pool.pull()
+	defer c.pool.push(conn)
 	if err != nil {
 		fmt.Printf("conn cmd %+v ,args: %+v err:%+v\n", cmd, args, err)
 		return &Reply{Type: ReplyError, Err: err}
 	}
 	fmt.Printf("working cmd %+v ,args: %+v\n", cmd, args)
-
-	defer c.pool.push(conn)
 
 	return conn.call(Cmd(cmd), args...)
 }
