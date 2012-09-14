@@ -2,6 +2,7 @@ package redis
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 )
 
@@ -21,15 +22,21 @@ func newConnPool(config *Config) *connPool {
 		config:    config,
 		closed:    false,
 	}
+	fmt.Printf("new pool:%d\n", config.PoolCapacity)
 
 	cp.emptyCond = sync.NewCond(&cp.lock)
 	return cp
 }
 
 func (cp *connPool) push(c *conn) {
+
+	fmt.Printf("[push]trylock\n")
 	cp.lock.Lock()
+	fmt.Printf("[push]lock ok a:%d \n", cp.available)
+
 	defer cp.lock.Unlock()
 	if cp.closed {
+		fmt.Printf("pool is close , so return \n")
 		return
 	}
 
@@ -38,18 +45,29 @@ func (cp *connPool) push(c *conn) {
 	}
 
 	cp.available++
+
 	cp.emptyCond.Signal()
+
+	fmt.Printf("[push]signal ok a:%d \n", cp.available)
 }
 
 func (cp *connPool) pull() (c *conn, err *Error) {
+
+	fmt.Printf("[pull]try lock\n")
 	cp.lock.Lock()
+	fmt.Printf("[pull]lock ok a:%d \n", cp.available)
+
 	defer cp.lock.Unlock()
 	if cp.closed {
 		return nil, newError("connection pool is closed", ErrorConnection)
 	}
 
 	for cp.available == 0 {
+
+		fmt.Printf("[pull]no conn, wait\n")
 		cp.emptyCond.Wait()
+		fmt.Printf("[pull]wait ok \n")
+
 	}
 
 	if cp.free.Len() > 0 {
@@ -59,11 +77,13 @@ func (cp *connPool) pull() (c *conn, err *Error) {
 		c, err = newConn(cp.config)
 
 		if err != nil {
+			fmt.Printf("[pull]conn ok but connct failed a:%d \n", cp.available)
 			return nil, err
 		}
 	}
-
 	cp.available--
+	fmt.Printf("[pull]conn ok a:%d \n", cp.available)
+
 	return c, nil
 }
 
